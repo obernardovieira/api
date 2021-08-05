@@ -49,19 +49,19 @@ class UserController {
             return;
         }
         const { token, phone, pushNotificationToken } = req.body;
-        if (pushNotificationToken !== undefined) {
-            UserService.welcome(req.user.address, pushNotificationToken)
+        // TODO: deprecated in mobile-app@1.1.5
+        if (token !== undefined && phone !== undefined) {
+            if (token.length > 0) {
+                // failing to set the push notification, should not be a blocker!
+                UserService.setPushNotificationsToken(req.user.address, token);
+            }
+            UserService.hello(req.user.address, phone)
                 .then((user) => standardResponse(res, 201, true, user))
                 .catch((e) =>
                     standardResponse(res, 400, false, '', { error: e })
                 );
         } else {
-            // TODO: deprecated in mobile-app@1.1.5
-            if (token !== undefined && token.length > 0) {
-                // failing to set the push notification, should not be a blocker!
-                UserService.setPushNotificationsToken(req.user.address, token);
-            }
-            UserService.hello(req.user.address, phone)
+            UserService.welcome(req.user.address, pushNotificationToken)
                 .then((user) => standardResponse(res, 201, true, user))
                 .catch((e) =>
                     standardResponse(res, 400, false, '', { error: e })
