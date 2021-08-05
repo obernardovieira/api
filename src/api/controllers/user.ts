@@ -57,7 +57,7 @@ class UserController {
                 );
         } else {
             // TODO: deprecated in mobile-app@1.1.5
-            if (token.length > 0) {
+            if (token !== undefined && token.length > 0) {
                 // failing to set the push notification, should not be a blocker!
                 UserService.setPushNotificationsToken(req.user.address, token);
             }
