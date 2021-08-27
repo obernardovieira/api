@@ -1,8 +1,10 @@
 import { expect } from 'chai';
+import { pbkdf2Sync } from 'crypto';
 import { ethers } from 'ethers';
 import faker from 'faker';
 import { Sequelize } from 'sequelize';
 
+import config from '../../../src/config';
 import { models } from '../../../src/database';
 import { CommunityAttributes } from '../../../src/database/models/ubi/community';
 import { User } from '../../../src/interfaces/app/user';
@@ -27,6 +29,13 @@ describe('user service', () => {
             const randomWallet = ethers.Wallet.createRandom();
             const address = await randomWallet.getAddress();
             const phone = faker.phone.phoneNumber();
+            const hashedPhone = pbkdf2Sync(
+                phone,
+                config.pbkdf2Salt,
+                100000,
+                64,
+                'sha512'
+            ).toString('hex');
             const newUser = await UserService.authenticate({
                 address,
                 trust: {
@@ -37,7 +46,7 @@ describe('user service', () => {
                 where: { address: newUser.user.address },
             });
             const findPhone = await sequelize.models.AppUserTrustModel.findOne({
-                where: { phone },
+                where: { phone: hashedPhone },
             });
             // eslint-disable-next-line no-unused-expressions
             expect(findUser).to.not.be.null;
@@ -51,6 +60,13 @@ describe('user service', () => {
             const currency = faker.finance.currencyCode();
             const username = faker.internet.userName();
             const phone = faker.phone.phoneNumber();
+            const hashedPhone = pbkdf2Sync(
+                phone,
+                config.pbkdf2Salt,
+                100000,
+                64,
+                'sha512'
+            ).toString('hex');
             //
             const newUser = await UserService.authenticate({
                 address,
@@ -71,7 +87,7 @@ describe('user service', () => {
                 where: { address: newUser.user.address },
             });
             const findPhone = await sequelize.models.AppUserTrustModel.findOne({
-                where: { phone },
+                where: { phone: hashedPhone },
             });
             // eslint-disable-next-line no-unused-expressions
             expect(findUser).to.not.be.null;
@@ -95,6 +111,13 @@ describe('user service', () => {
             const randomWallet = ethers.Wallet.createRandom();
             const address = await randomWallet.getAddress();
             const phone = faker.phone.phoneNumber();
+            const hashedPhone = pbkdf2Sync(
+                phone,
+                config.pbkdf2Salt,
+                100000,
+                64,
+                'sha512'
+            ).toString('hex');
             //
             await UserService.authenticate({
                 address,
@@ -112,7 +135,7 @@ describe('user service', () => {
                 where: { address: loadUser.user.address },
             });
             const findPhone = await sequelize.models.AppUserTrustModel.findOne({
-                where: { phone },
+                where: { phone: hashedPhone },
             });
             // eslint-disable-next-line no-unused-expressions
             expect(findUser).to.not.be.null;
@@ -129,6 +152,13 @@ describe('user service', () => {
             const currency = faker.finance.currencyCode();
             const username = faker.internet.userName();
             const phone = faker.phone.phoneNumber();
+            const hashedPhone = pbkdf2Sync(
+                phone,
+                config.pbkdf2Salt,
+                100000,
+                64,
+                'sha512'
+            ).toString('hex');
             //
             await UserService.authenticate({
                 address,
@@ -164,7 +194,7 @@ describe('user service', () => {
                 where: { address: loadUser.user.address },
             });
             const findPhone = await sequelize.models.AppUserTrustModel.findOne({
-                where: { phone },
+                where: { phone: hashedPhone },
             });
             // eslint-disable-next-line no-unused-expressions
             expect(findUser).to.not.be.null;
@@ -226,12 +256,15 @@ describe('user service', () => {
                 },
             });
 
-            const loadUser = await UserService.authenticate({
-                address: secondAddress,
-                trust: {
-                    phone,
+            const loadUser = await UserService.authenticate(
+                {
+                    address: secondAddress,
+                    trust: {
+                        phone,
+                    },
                 },
-            }, true);
+                true
+            );
 
             const findUser = await models.user.findOne({
                 where: { address: firstAddress },
@@ -263,12 +296,15 @@ describe('user service', () => {
             });
 
             // replace by a new account
-            await UserService.authenticate({
-                address: secondAddress,
-                trust: {
-                    phone,
+            await UserService.authenticate(
+                {
+                    address: secondAddress,
+                    trust: {
+                        phone,
+                    },
                 },
-            }, true);
+                true
+            );
 
             let error: any;
 
@@ -431,6 +467,6 @@ describe('user service', () => {
             const userUpdated = await UserService.edit(address, data);
 
             expect(userUpdated).to.include(data);
-        })
-    })
+        });
+    });
 });

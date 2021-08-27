@@ -222,4 +222,6 @@ export default {
     internalNotifications: validatedEnv.INTERNAL_NOTIFICATIONS,
 
     maxRequestPerUser: validatedEnv.MAX_REQUEST_PER_USER,
+
+    pbkdf2Salt: validatedEnv.PBKDF2_SALT,
 };

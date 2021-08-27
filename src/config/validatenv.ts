@@ -75,6 +75,7 @@ function validateEnv() {
         HAS_REDIS_TLS: bool({ default: true }),
         INTERNAL_NOTIFICATIONS: bool({ default: false }),
         MAX_REQUEST_PER_USER: num({ default: 900 }),
+        PBKDF2_SALT: str({ devDefault: onlyOnTestEnv('salt') }),
     });
 }
 

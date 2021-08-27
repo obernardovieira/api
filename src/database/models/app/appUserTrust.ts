@@ -23,7 +23,7 @@ export function initializeAppUserTrust(sequelize: Sequelize): void {
             },
             phone: {
                 // hashed phone number
-                type: DataTypes.STRING(64),
+                type: DataTypes.STRING(128),
                 allowNull: false,
             },
             verifiedPhoneNumber: {

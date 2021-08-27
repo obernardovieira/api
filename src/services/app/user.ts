@@ -6,9 +6,11 @@ import { User, UserCreationAttributes } from '@interfaces/app/user';
 import { CommunityAttributes } from '@models/ubi/community';
 import { ProfileContentStorage } from '@services/storage';
 import { Logger } from '@utils/logger';
+import { pbkdf2Sync } from 'crypto';
 import { Op } from 'sequelize';
 
 import { generateAccessToken } from '../../api/middlewares';
+import config from '../../config';
 import { models, sequelize } from '../../database';
 import { IUserHello, IUserAuth } from '../../types/endpoints';
 import CommunityService from '../ubi/community';
@@ -34,9 +36,16 @@ export default class UserService {
             // generate access token for future interactions that require authentication
             const token = generateAccessToken(user.address);
             const exists = await this.exists(user.address);
-            const existsPhone = user.trust?.phone
-                ? await this.existsAccountByPhone(user.trust.phone)
-                : false;
+            user.trust!.phone = pbkdf2Sync(
+                user.trust!.phone, // it's mandatory and validated on endpoint request
+                config.pbkdf2Salt,
+                100000,
+                64,
+                'sha512'
+            ).toString('hex');
+            const existsPhone = await this.existsAccountByPhone(
+                user.trust!.phone
+            );
 
             if (overwrite) {
                 await this.overwriteUser(user);
@@ -112,7 +121,7 @@ export default class UserService {
                         model: this.appUserTrust,
                         as: 'trust',
                         where: {
-                            phone: user.trust?.phone,
+                            phone: user.trust!.phone,
                         },
                     },
                 ],
