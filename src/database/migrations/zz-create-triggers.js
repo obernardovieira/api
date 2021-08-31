@@ -129,10 +129,11 @@ EXECUTE PROCEDURE update_inflow_community_states();`);
     BEGIN
         IF (TG_OP = 'INSERT') THEN -- INSERT operations
             UPDATE story_engagement SET loves = loves + 1 WHERE "contentId"=NEW."contentId";
+            RETURN NEW;
         ELSEIF (TG_OP = 'DELETE') THEN -- DELETE operations
-            UPDATE story_engagement SET loves = loves - 1 WHERE "contentId"=NEW."contentId";
+            UPDATE story_engagement SET loves = loves - 1 WHERE "contentId"=OLD."contentId";
+            RETURN OLD;
         END IF;
-        RETURN NEW;
     END;
 $$ LANGUAGE plpgsql;
 

@@ -9,6 +9,8 @@ interface ICreateProps {
     phone?: string;
     suspect?: boolean;
     active?: boolean;
+    gender?: string;
+    year?: number;
 }
 /**
  * Generate an object which container attributes needed
@@ -25,13 +27,14 @@ const data = async (props?: ICreateProps) => {
         username: faker.internet.userName(),
         language: 'pt',
         currency: faker.finance.currencyCode(),
-        gender: 'u',
+        gender: props?.gender ? props?.gender : 'u',
         pushNotificationToken: '',
         suspect: props?.suspect ? props.suspect : false,
         trust: {
             phone: props?.phone ? props.phone : faker.phone.phoneNumber(),
         },
         active: props?.active,
+        year: props?.year,
     };
     return defaultProps;
 };

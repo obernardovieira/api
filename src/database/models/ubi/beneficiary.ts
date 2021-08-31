@@ -61,11 +61,11 @@ export function initializeBeneficiary(sequelize: Sequelize): void {
             },
             address: {
                 type: DataTypes.STRING(44),
-                references: {
-                    model: 'user',
-                    key: 'address',
-                },
-                onDelete: 'RESTRICT', // delete only if active = false, separately
+                // references: {
+                //     model: 'user',
+                //     key: 'address',
+                // },
+                // onDelete: 'RESTRICT', // delete only if active = false, separately
                 allowNull: false,
             },
             communityId: {

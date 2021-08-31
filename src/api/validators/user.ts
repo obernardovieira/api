@@ -100,8 +100,8 @@ const edit = celebrate({
         children: Joi.number().optional(),
         avatarMediaId: Joi.number().optional(),
         pushNotificationToken: Joi.string().optional().allow(''),
-    })
-})
+    }),
+});
 
 export default {
     report,

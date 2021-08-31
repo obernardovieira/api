@@ -31,8 +31,8 @@ export default class GlobalDemographicsService {
         const yesterdayDate = yesterdayDateOnly.toISOString().split('T')[0];
 
         const year = new Date().getUTCFullYear();
-        const demographics: UbiCommunityDemographicsCreation[] = (await this.community.findAll(
-            {
+        const demographics: UbiCommunityDemographicsCreation[] =
+            (await this.community.findAll({
                 attributes: [
                     ['id', 'communityId'],
                     [literal(`'${yesterdayDate}'`), 'date'],
@@ -101,7 +101,12 @@ export default class GlobalDemographicsService {
                             active: true,
                         },
                         include: [
-                            { model: models.user, as: 'user', attributes: [] },
+                            {
+                                model: models.user,
+                                as: 'user',
+                                required: true,
+                                attributes: [],
+                            },
                         ],
                     },
                 ],
@@ -111,8 +116,7 @@ export default class GlobalDemographicsService {
                 },
                 group: ['"Community".id'],
                 raw: true,
-            }
-        )) as any;
+            })) as any;
         await this.ubiCommunityDemographics.bulkCreate(demographics);
     }
 

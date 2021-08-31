@@ -628,7 +628,13 @@ export default class CommunityService {
                 active: true,
             },
         });
-        return result.map((r) => r.toJSON() as ManagerAttributes);
+        return result.map((r) => {
+            const manager = r.toJSON() as ManagerAttributes;
+            return {
+                ...manager,
+                isDeleted: !manager.user,
+            };
+        });
     }
 
     public static async getPromoter(communityId: number) {

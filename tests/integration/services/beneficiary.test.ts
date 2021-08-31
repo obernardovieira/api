@@ -1,4 +1,3 @@
-import ClaimsService from '../../../src/services/ubi/claim';
 import { use, expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import { ethers } from 'ethers';
@@ -12,6 +11,7 @@ import { ManagerAttributes } from '../../../src/database/models/ubi/manager';
 import { User } from '../../../src/interfaces/app/user';
 import { UbiBeneficiaryRegistryType } from '../../../src/interfaces/ubi/ubiBeneficiaryRegistry';
 import BeneficiaryService from '../../../src/services/ubi/beneficiary';
+import ClaimsService from '../../../src/services/ubi/claim';
 import { IListBeneficiary } from '../../../src/types/endpoints';
 import BeneficiaryFactory from '../../factories/beneficiary';
 import ClaimFactory from '../../factories/claim';

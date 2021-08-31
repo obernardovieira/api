@@ -102,8 +102,12 @@ export default class BeneficiaryService {
         searchInput: string,
         active?: boolean
     ): Promise<IListBeneficiary[]> {
-        let whereSearchCondition: Where | WhereAttributeHash<User>;
-        let whereActive: Where | WhereAttributeHash<BeneficiaryAttributes> = {};
+        let whereSearchCondition: Where | WhereAttributeHash<User> = {};
+        let whereBeneficiary:
+            | Where
+            | WhereAttributeHash<BeneficiaryAttributes> = {};
+        let required: boolean;
+
         if (!isAddress(managerAddress)) {
             throw new Error('Not valid address!');
         }
@@ -115,9 +119,10 @@ export default class BeneficiaryService {
             throw new Error('Not valid address!');
         }
         if (isAddress(searchInput)) {
-            whereSearchCondition = {
+            whereBeneficiary = {
                 address: ethers.utils.getAddress(searchInput),
             };
+            required = false;
         } else if (
             searchInput.toLowerCase().indexOf('drop') === -1 &&
             searchInput.toLowerCase().indexOf('delete') === -1 &&
@@ -126,12 +131,16 @@ export default class BeneficiaryService {
             whereSearchCondition = {
                 username: { [Op.iLike]: `%${searchInput.slice(0, 16)}%` },
             };
+            required = true;
         } else {
             throw new Error('Not valid search!');
         }
 
         if (active !== undefined) {
-            whereActive = { active };
+            whereBeneficiary = {
+                active,
+                ...whereBeneficiary,
+            };
         }
 
         // const order: OrderItem[] = [
@@ -152,12 +161,13 @@ export default class BeneficiaryService {
         }
         const communityId = (manager.toJSON() as ManagerAttributes).communityId;
         const x = await models.beneficiary.findAll({
-            where: { ...whereActive, communityId },
+            where: { ...whereBeneficiary, communityId },
             include: [
                 {
                     model: models.user,
                     as: 'user',
                     where: whereSearchCondition,
+                    required,
                 },
             ],
             order,
@@ -175,6 +185,7 @@ export default class BeneficiaryService {
                 claimed: b.claimed,
                 blocked: b.blocked,
                 suspect: b.user && b.user.suspect,
+                isDeleted: !b.user || !!b.user!.deletedAt,
             };
         });
         return result;
@@ -213,6 +224,7 @@ export default class BeneficiaryService {
                 {
                     model: models.user,
                     as: 'user',
+                    required: false,
                 },
             ],
             order,
@@ -231,6 +243,7 @@ export default class BeneficiaryService {
                 claimed: b.claimed,
                 blocked: b.blocked,
                 suspect: b.user && b.user.suspect,
+                isDeleted: !b.user || !!b.user!.deletedAt,
             };
         });
         return result;

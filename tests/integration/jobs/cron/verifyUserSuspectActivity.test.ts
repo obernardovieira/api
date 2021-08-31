@@ -51,9 +51,9 @@ describe('[jobs - cron] verifyUserSuspectActivity', () => {
                 },
             ],
         });
-      
+
         users.forEach((user) => {
-            if(user.trust![0].phone === '00351969696966') {
+            if (user.trust![0].phone === '00351969696966') {
                 expect(user.suspect).to.be.equal(true);
             } else {
                 expect(user.suspect).to.be.equal(false);
@@ -88,7 +88,7 @@ describe('[jobs - cron] verifyUserSuspectActivity', () => {
         });
 
         users.forEach((user) => {
-            if(user.trust![0].phone === '00351969696969') {
+            if (user.trust![0].phone === '00351969696969') {
                 expect(user.suspect).to.be.equal(false);
             } else {
                 expect(user.suspect).to.be.equal(true);

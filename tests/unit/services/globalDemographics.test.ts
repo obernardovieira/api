@@ -270,19 +270,19 @@ describe('globalDemographics', () => {
             GlobalDemographicsService.sequelize,
             'query'
         );
-    
+
         dbSequelizeQueryStub
             .withArgs(match(/current_date_year/))
             .returns(Promise.resolve(ageRangeQueryResult as any));
         dbSequelizeQueryStub
             .withArgs(match(/gender/))
             .returns(Promise.resolve(genderQueryResult as any));
-            
+
         dbGlobalDemographicsInsertStub = stub(
             GlobalDemographicsService.globalDemographics,
             'bulkCreate'
         );
-    })
+    });
 
     it('#calculateDemographics()', async () => {
         await GlobalDemographicsService.calculateDemographics();

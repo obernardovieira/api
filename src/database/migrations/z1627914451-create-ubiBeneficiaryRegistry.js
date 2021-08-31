@@ -11,20 +11,20 @@ module.exports = {
             },
             address: {
                 type: Sequelize.STRING(44),
-                references: {
-                    model: 'user',
-                    key: 'address',
-                },
-                onDelete: 'RESTRICT',
+                // references: {
+                //     model: 'user',
+                //     key: 'address',
+                // },
+                // onDelete: 'RESTRICT',
                 allowNull: false,
             },
             from: {
                 type: Sequelize.STRING(44),
-                references: {
-                    model: 'user',
-                    key: 'address',
-                },
-                onDelete: 'RESTRICT',
+                // references: {
+                //     model: 'user',
+                //     key: 'address',
+                // },
+                // onDelete: 'RESTRICT',
                 allowNull: false,
             },
             communityId: {

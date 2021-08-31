@@ -18,6 +18,7 @@ export class UserModel extends Model<User, UserCreationAttributes> {
     // timestamps!
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
+    public readonly deletedAt!: Date;
 }
 
 export function initializeUser(sequelize: Sequelize): typeof UserModel {
@@ -84,6 +85,10 @@ export function initializeUser(sequelize: Sequelize): typeof UserModel {
             updatedAt: {
                 type: DataTypes.DATE,
                 allowNull: false,
+            },
+            deletedAt: {
+                type: DataTypes.DATE,
+                allowNull: true,
             },
         },
         {

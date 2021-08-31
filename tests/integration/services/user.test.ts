@@ -5,9 +5,11 @@ import { Sequelize } from 'sequelize';
 
 import { models } from '../../../src/database';
 import { CommunityAttributes } from '../../../src/database/models/ubi/community';
+import { ManagerAttributes } from '../../../src/database/models/ubi/manager';
 import { User } from '../../../src/interfaces/app/user';
 import UserService from '../../../src/services/app/user';
 import CommunityFactory from '../../factories/community';
+import ManagerFactory from '../../factories/manager';
 import UserFactory from '../../factories/user';
 import truncate, { sequelizeSetup } from '../../utils/sequelizeSetup';
 
@@ -19,6 +21,9 @@ describe('user service', () => {
     });
 
     after(async () => {
+        await truncate(sequelize, 'UserModel');
+        await truncate(sequelize, 'Manager');
+        await truncate(sequelize, 'Beneficiary');
         await truncate(sequelize);
     });
 
@@ -226,12 +231,15 @@ describe('user service', () => {
                 },
             });
 
-            const loadUser = await UserService.authenticate({
-                address: secondAddress,
-                trust: {
-                    phone,
+            const loadUser = await UserService.authenticate(
+                {
+                    address: secondAddress,
+                    trust: {
+                        phone,
+                    },
                 },
-            }, true);
+                true
+            );
 
             const findUser = await models.user.findOne({
                 where: { address: firstAddress },
@@ -263,12 +271,15 @@ describe('user service', () => {
             });
 
             // replace by a new account
-            await UserService.authenticate({
-                address: secondAddress,
-                trust: {
-                    phone,
+            await UserService.authenticate(
+                {
+                    address: secondAddress,
+                    trust: {
+                        phone,
+                    },
                 },
-            }, true);
+                true
+            );
 
             let error: any;
 
@@ -431,6 +442,57 @@ describe('user service', () => {
             const userUpdated = await UserService.edit(address, data);
 
             expect(userUpdated).to.include(data);
-        })
-    })
+        });
+    });
+
+    describe('delete', () => {
+        let users: User[];
+        let managers: ManagerAttributes[];
+
+        before(async () => {
+            users = await UserFactory({ n: 2 });
+            const communities = await CommunityFactory([
+                {
+                    requestByAddress: users[0].address,
+                    started: new Date(),
+                    status: 'valid',
+                    visibility: 'public',
+                    contract: {
+                        baseInterval: 60 * 60 * 24,
+                        claimAmount: '1000000000000000000',
+                        communityId: 0,
+                        incrementInterval: 5 * 60,
+                        maxClaim: '450000000000000000000',
+                    },
+                    hasAddress: true,
+                },
+            ]);
+            managers = await ManagerFactory(
+                [users[0]],
+                communities[0].publicId
+            );
+        });
+
+        it('should not delete a user when he is one of the only two managers in the community', async () => {
+            UserService.delete(users[0].address)
+                .catch((err) => expect(err).to.be.equal('Not enough managers'))
+                .then(() => {
+                    throw new Error('expected to fail');
+                });
+        });
+
+        it('should target to delete successfully', async () => {
+            await UserService.delete(users[1].address);
+
+            const findUser = await models.user.findAll();
+
+            findUser.forEach((user: User) => {
+                if (user.address === users[1].address) {
+                    expect(user.deletedAt).to.be.not.null;
+                } else {
+                    expect(user.deletedAt).to.be.null;
+                }
+            });
+        });
+    });
 });
