@@ -16,8 +16,11 @@ class CommunityController {
             .catch((e) => standardResponse(res, 400, false, '', { error: e }));
     };
 
-    findByContractAddress = (req: Request, res: Response) => {
-        CommunityService.findByContractAddress(req.params.address)
+    findByContractAddress = (req: RequestWithUser, res: Response) => {
+        CommunityService.findByContractAddress(
+            req.params.address,
+            req.user?.address
+        )
             .then((community) =>
                 standardResponse(res, 200, !!community, community)
             )
@@ -109,8 +112,11 @@ class CommunityController {
             .catch((e) => standardResponse(res, 400, false, '', { error: e }));
     };
 
-    findById = (req: Request, res: Response) => {
-        CommunityService.findById(parseInt(req.params.id, 10))
+    findById = (req: RequestWithUser, res: Response) => {
+        CommunityService.findById(
+            parseInt(req.params.id, 10),
+            req.user?.address
+        )
             .then((community) => standardResponse(res, 200, true, community))
             .catch((e) => standardResponse(res, 400, false, '', { error: e }));
     };
@@ -218,7 +224,7 @@ class CommunityController {
             });
             return;
         }
-        const { name, description, currency, coverMediaId } = req.body;
+        const { name, description, currency, coverMediaId, email } = req.body;
         // verify if the current user is manager in this community
         ManagerService.get(req.user.address)
             .then(async (manager) => {
@@ -226,12 +232,17 @@ class CommunityController {
                     const community = await CommunityService.getByPublicId(
                         manager.communityId
                     );
-                    CommunityService.edit(community!.id, {
-                        name,
-                        description,
-                        currency,
-                        coverMediaId,
-                    })
+                    CommunityService.edit(
+                        community!.id,
+                        {
+                            name,
+                            description,
+                            currency,
+                            coverMediaId,
+                            email,
+                        },
+                        req.user?.address
+                    )
                         .then((community) =>
                             standardResponse(res, 200, true, community)
                         )

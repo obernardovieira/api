@@ -407,7 +407,15 @@ export default (app: Router): void => {
      *             schema:
      *               $ref: '#/components/schemas/UbiCommunity'
      */
-    route.get('/address/:address', controller.findByContractAddress);
+    route.get(
+        '/address/:address',
+        (req, res, next) => {
+            (req as any).authTokenIsOptional = true;
+            next();
+        },
+        authenticateToken,
+        controller.findByContractAddress
+    );
 
     /**
      * @swagger
@@ -835,7 +843,15 @@ export default (app: Router): void => {
      *             schema:
      *               $ref: '#/components/schemas/UbiCommunity'
      */
-    route.get('/:id', controller.findById);
+    route.get(
+        '/:id',
+        (req, res, next) => {
+            (req as any).authTokenIsOptional = true;
+            next();
+        },
+        authenticateToken,
+        controller.findById
+    );
 
     /**
      * @swagger

@@ -188,7 +188,9 @@ export default class CommunityService {
             description: string;
             currency: string;
             coverMediaId: number;
-        }
+            email?: string;
+        },
+        userAddress?: string
     ): Promise<CommunityAttributes> {
         const community = await this.community.findOne({
             attributes: ['coverMediaId'],
@@ -198,9 +200,9 @@ export default class CommunityService {
             throw new Error('community not found!');
         }
         // since cover can't be null, we first update and then remove
-        const { name, description, currency, coverMediaId } = params;
+        const { name, description, currency, coverMediaId, email } = params;
         const update = await this.community.update(
-            { name, description, currency },
+            { name, description, currency, email },
             { where: { id } }
         );
         if (coverMediaId !== -1 && community.coverMediaId !== coverMediaId) {
@@ -214,7 +216,7 @@ export default class CommunityService {
         if (update[0] === 0) {
             throw new Error('community was not updated!');
         }
-        return this._findCommunityBy({ id });
+        return this._findCommunityBy({ id }, userAddress);
     }
 
     public static async delete(id: number): Promise<boolean> {
@@ -429,6 +431,9 @@ export default class CommunityService {
         }
 
         const communitiesResult = await this.community.findAndCountAll({
+            attributes: {
+                exclude: ['email'],
+            },
             where: {
                 status: 'valid',
                 visibility: 'public',
@@ -481,22 +486,25 @@ export default class CommunityService {
         });
     }
 
-    public static async findById(id: number): Promise<CommunityAttributes> {
-        return this._findCommunityBy({
-            id,
-        });
+    public static async findById(
+        id: number,
+        userAddress?: string
+    ): Promise<CommunityAttributes> {
+        return this._findCommunityBy({ id }, userAddress);
     }
 
     public static async findByContractAddress(
-        contractAddress: string
+        contractAddress: string,
+        userAddress?: string
     ): Promise<CommunityAttributes> {
-        return this._findCommunityBy({
-            contractAddress,
-        });
+        return this._findCommunityBy({ contractAddress }, userAddress);
     }
 
     public static async getDashboard(id: string) {
         const result = await this.community.findOne({
+            attributes: {
+                exclude: ['email'],
+            },
             include: [
                 {
                     model: this.ubiCommunityState,
@@ -1335,14 +1343,12 @@ export default class CommunityService {
     // PRIVATE METHODS
 
     private static async _findCommunityBy(
-        where: WhereOptions<CommunityAttributes>
+        where: WhereOptions<CommunityAttributes>,
+        userAddress?: string
     ): Promise<CommunityAttributes> {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const community = await this.community.findOne({
-            attributes: {
-                exclude: ['email'],
-            },
             include: [
                 {
                     model: this.appMediaContent,
@@ -1365,8 +1371,23 @@ export default class CommunityService {
         const contract = (await this.getContract(community.id))!;
         const state = (await this.getState(community.id))!;
         const metrics = await this.getMetrics(community.id);
+
+        let showEmail = false;
+        if (userAddress) {
+            const manager = await models.manager.findOne({
+                attributes: ['communityId'],
+                where: { address: userAddress, active: true },
+            });
+            if (manager !== null) {
+                const communityId = (manager.toJSON() as ManagerAttributes)
+                    .communityId;
+                showEmail = communityId === community.publicId;
+            }
+        }
+
         return {
             ...(community.toJSON() as CommunityAttributes),
+            email: showEmail ? community.email : '',
             suspect: suspect !== null ? [suspect] : undefined,
             contract,
             state,

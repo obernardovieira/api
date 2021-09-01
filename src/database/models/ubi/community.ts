@@ -165,9 +165,6 @@ export function initializeCommunity(sequelize: Sequelize): void {
             email: {
                 type: DataTypes.STRING(64),
                 allowNull: false,
-                get() {
-                    return '';
-                },
             },
             visibility: {
                 type: DataTypes.ENUM('public', 'private'),
