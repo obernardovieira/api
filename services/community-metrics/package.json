@@ -16,7 +16,7 @@
         "@huma-finance/shared": "0.0.46",
         "@impactmarket/core": "1.0.0",
         "cross-fetch": "4.0.0",
-        "ethers": "5.7.2",
+        "ethers": "6.12.0",
         "node-fetch": "3.3.2"
     },
     "devDependencies": {

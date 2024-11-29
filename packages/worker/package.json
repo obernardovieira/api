@@ -22,7 +22,7 @@
     "dependencies": {
         "@impactmarket/core": "1.0.0",
         "bignumber.js": "9.1.1",
-        "ethers": "5.7.2",
+        "ethers": "6.12.0",
         "node-schedule": "2.1.1",
         "sequelize": "6.35.1",
         "ts-node": "10.9.1",
