@@ -61,7 +61,7 @@
         "envalid": "8.0.0",
         "ethers": "5.7.2",
         "express": "4.18.2",
-        "firebase-admin": "11.11.0",
+        "firebase-admin": "12.1.0",
         "graphql": "16.8.1",
         "ioredis": "5.3.2",
         "moment": "2.29.4",
