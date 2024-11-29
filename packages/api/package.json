@@ -7,7 +7,7 @@
         "node": "18.x"
     },
     "scripts": {
-        "dev": "nodemon --config nodemon.json src/app.ts",
+        "dev": "NODE_OPTIONS=--max_old_space_size=4096 nodemon --config nodemon.json src/app.ts",
         "start": "node --require './appsignal.cjs' dist/app.js",
         "start:local": "RUN_LOCAL_BUILD=true CLIMEM=8999 node -r climem dist/app.js",
         "test": "NODE_ENV=test mocha",

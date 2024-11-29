@@ -1,4 +1,4 @@
-import { Op, QueryTypes, WhereOptions } from 'sequelize';
+import { Op, QueryTypes, WhereOptions, fn, literal } from 'sequelize';
 
 import { AppCICOProviderModel, CICOProviderRegistry } from '../../database/models/cico/providers';
 import { models, sequelize } from '../../database';
@@ -6,10 +6,95 @@ import { models, sequelize } from '../../database';
 enum CICOProviderType {
     EXCHANGE = 0,
     MERCHANT = 1,
-    INDIVIDUAL = 2
+    INDIVIDUAL = 2,
+    FIATCONNECT_PIXACCOUNT = 3
 }
 
 export default class CICOProviderService {
+    /**
+     * returns an array the types that are available under specific query
+     * @param query query params
+     */
+    public async has(query: { country?: string; lat?: number; lng?: number; distance?: number }): Promise<number[]> {
+        const { country, lat, lng, distance } = query;
+        const conditions: any[] = [];
+
+        if (lat && lng && distance) {
+            conditions.push(
+                literal(
+                    // distance is in meters, so we need to multiply by 1000
+                    `(earth_box(ll_to_earth(${lat}, ${lng}), ${
+                        distance * 1000
+                    }) @>  ll_to_earth(CAST(details->'gps'->>'latitude' AS FLOAT), CAST(details->'gps'->>'longitude' AS FLOAT)))`
+                )
+            );
+        }
+
+        if (country) {
+            conditions.push({
+                countries: {
+                    [Op.or]: [{ [Op.contains]: [country] }, { [Op.contains]: ['11'] }]
+                }
+            });
+        } else {
+            conditions.push({ countries: { [Op.contains]: ['11'] } });
+        }
+
+        const resultCounts = await models.appCICOProvider.findAll({
+            attributes: ['type', [fn('COUNT', literal('*')), 'count']],
+            where: {
+                [Op.or]: conditions
+            },
+            group: ['type']
+        });
+
+        return resultCounts.map(r => r.dataValues.type);
+    }
+
+    public async getNew(query: {
+        country?: string;
+        lat?: number;
+        lng?: number;
+        distance?: number;
+        type?: number;
+        limit: number;
+        offset: number;
+    }) {
+        const { country, lat, lng, distance, type, limit, offset } = query;
+        const conditions: any[] = [];
+
+        if (lat && lng && distance) {
+            conditions.push(
+                literal(
+                    `(earth_box(ll_to_earth(${lat}, ${lng}), ${
+                        distance * 1000
+                    }) @>  ll_to_earth(CAST(details->'gps'->>'latitude' AS FLOAT), CAST(details->'gps'->>'longitude' AS FLOAT)))`
+                )
+            );
+        }
+
+        if (country) {
+            conditions.push({
+                countries: {
+                    [Op.or]: [{ [Op.contains]: [country] }, { [Op.contains]: ['11'] }]
+                }
+            });
+        } else {
+            conditions.push({ countries: { [Op.contains]: ['11'] } });
+        }
+
+        const resultCounts = await models.appCICOProvider.findAll({
+            where: {
+                [Op.or]: conditions,
+                type: type ?? 0
+            },
+            offset,
+            limit
+        });
+
+        return resultCounts.map(r => r.toJSON());
+    }
+
     public async get(query: { country?: string; lat?: number; lng?: number; distance?: number }) {
         // when no query is provided
         if (!query.country && !query.lat && !query.lng && !query.distance) {

@@ -33,6 +33,8 @@ type IndividualDetails = {
     phone: string;
 };
 
+type FiatConnectDetails = {};
+
 export interface CICOProviderRegistry {
     id: number;
     name: string;
@@ -41,7 +43,7 @@ export interface CICOProviderRegistry {
     type: number;
     isCashin: boolean;
     isCashout: boolean;
-    details: ExchangeDetails | MerchantDetails | IndividualDetails;
+    details: ExchangeDetails | MerchantDetails | IndividualDetails | FiatConnectDetails;
 
     updatedAt: Date;
 }

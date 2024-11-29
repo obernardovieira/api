@@ -9,6 +9,7 @@ import global from './global';
 import lazyAgenda from './lazyAgenda';
 import learnAndEarn from './learnAndEarn';
 import microcredit from './microcredit';
+import oldCico from './cico/old';
 import protocol from './protocol';
 import referrals from './referrals';
 import story from './story';
@@ -28,6 +29,7 @@ export default (): Router => {
     protocol(app);
     referrals(app);
     cico(app);
+    oldCico(app);
     lazyAgenda(app);
 
     return app;
