@@ -48,7 +48,7 @@ export async function updateBorrowers(): Promise<void> {
                 return subgraphMicroCreditBorrowers
                     .findOne({ where: { userId: user.id } })
                     .then(subgraphBorrower => {
-                        if(subgraphBorrower)
+                        if (subgraphBorrower)
                             return subgraphBorrower.update(values, { transaction: t });
                         return subgraphMicroCreditBorrowers.create({ userId: user.id, ...values }, { transaction: t });
                     })
@@ -74,9 +74,9 @@ export async function updateCurrentDebt(): Promise<void> {
     const t = await database.sequelize.transaction();
 
     try {
-        // get borrowers that did not repay for more that 3 weeks
-        const threeWeeksAgo = new Date();
-        threeWeeksAgo.setDate(threeWeeksAgo.getDate() - 21);
+        // get borrowers that did not repay for more that 3 days
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
         const borrowers = await subgraphMicroCreditBorrowers.findAll({
             include: [{
@@ -84,15 +84,23 @@ export async function updateCurrentDebt(): Promise<void> {
                 as: 'user',
             }],
             where: {
-                lastRepayment: {
-                    [Op.lt]: threeWeeksAgo.getTime() / 1000 | 0
-                },
-                updatedAt: {
-                    [Op.lt]: threeWeeksAgo
-                },
-                lastDebt: {
-                    [Op.gt]: 0
-                }
+                [Op.or]: [
+                    {
+                        lastRepayment: {
+                            [Op.lt]: threeDaysAgo.getTime() / 1000 | 0
+                        }
+                    },
+                    {
+                        updatedAt: {
+                            [Op.lt]: threeDaysAgo
+                        }
+                    },
+                    {
+                        lastDebt: {
+                            [Op.gt]: 0
+                        }
+                    }
+                ]
             }
         });
 
@@ -105,7 +113,7 @@ export async function updateCurrentDebt(): Promise<void> {
                 const { loansLength } = await microCreditContract.walletMetadata(borrower.user!.address);
 
                 // get last loan
-                const { currentDebt } = await microCreditContract.userLoans(borrower.user!.address, loansLength-1);
+                const { currentDebt } = await microCreditContract.userLoans(borrower.user!.address, loansLength - 1);
                 const currentDebtFormated = new BigNumber(currentDebt.toString()).dividedBy(new BigNumber(10).pow(18)).toNumber();
                 return subgraphMicroCreditBorrowers.update({
                     lastDebt: currentDebtFormated,
@@ -122,7 +130,7 @@ export async function updateCurrentDebt(): Promise<void> {
         await Promise.all(promises);
 
         await t.commit();
-        utils.Logger.info('Current debt updated!');       
+        utils.Logger.info('Current debt updated!');
     } catch (error) {
         await t.rollback();
         utils.slack.sendSlackMessage('🚨 Error to update current debt', config.slack.lambdaChannel);
